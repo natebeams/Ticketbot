@@ -9,9 +9,12 @@ PermissionsBitField
 } = require("discord.js");
 
 const fs = require("fs");
-const counterFile = "./ticketCount.json";
-const transcripts = require("discord-html-transcripts"); // transcript system
+const transcripts = require("discord-html-transcripts");
 require("dotenv").config();
+
+/* ================================
+DISCORD CLIENT
+================================ */
 
 const client = new Client({
 intents:[
@@ -21,20 +24,25 @@ GatewayIntentBits.MessageContent
 ]
 });
 
-client.once("ready",()=>{
+/* ================================
+READY EVENT
+================================ */
+
+client.once("clientReady",()=>{
 console.log(`Logged in as ${client.user.tag}`);
 });
+
+/* ================================
+INTERACTIONS
+================================ */
 
 client.on("interactionCreate", async interaction => {
 
 if(!interaction.isButton()) return;
 
-/* ================================
-LOAD CONFIG
-================================ */
+/* LOAD CONFIG */
 
 const config = JSON.parse(fs.readFileSync("./config.json"));
-
 const logChannel = interaction.guild.channels.cache.get(config.logsChannel);
 
 /* ================================
@@ -54,6 +62,7 @@ ticketNumber = data.count + 1;
 }
 
 fs.writeFileSync("./ticketCount.json", JSON.stringify({ count: ticketNumber }));
+
 const ticketChannel = await guild.channels.create({
 name:`ticket-${ticketNumber}`,
 type:ChannelType.GuildText,
@@ -98,9 +107,7 @@ content:`✅ Ticket created: ${ticketChannel}`,
 ephemeral:true
 });
 
-/* ================================
-LOG TICKET CREATION
-================================ */
+/* LOG CREATION */
 
 if(logChannel){
 
@@ -139,14 +146,10 @@ if(interaction.customId === "close_ticket"){
 
 try{
 
-/* CREATE TRANSCRIPT */
-
 const transcript = await transcripts.createTranscript(interaction.channel,{
 limit:-1,
 filename:`${interaction.channel.name}.html`
 });
-
-/* SEND TRANSCRIPT TO LOG CHANNEL */
 
 if(logChannel){
 
@@ -157,14 +160,10 @@ files:[transcript]
 
 }
 
-/* CONFIRM CLOSE */
-
 await interaction.reply({
 content:"🔒 Closing ticket...",
 ephemeral:true
 });
-
-/* DELETE CHANNEL AFTER DELAY */
 
 setTimeout(()=>{
 interaction.channel.delete().catch(()=>{});
@@ -180,8 +179,33 @@ console.error("Close ticket error:",err);
 
 });
 
+/* ================================
+LOGIN
+================================ */
+
 client.login(process.env.TOKEN);
 
-module.exports = client;
+/* ================================
+RAILWAY KEEP ALIVE SERVER
+================================ */
+
+const express = require("express");
+const app = express();
+
+app.get("/", (req,res)=>{
+res.send("Ticket Bot Running");
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT,()=>{
+console.log(`Web server running on port ${PORT}`);
+});
+
+/* ================================
+DASHBOARD
+================================ */
 
 require("./dashboard");
+
+module.exports = client;
