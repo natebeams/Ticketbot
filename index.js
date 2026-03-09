@@ -25,16 +25,18 @@ GatewayIntentBits.MessageContent
 });
 
 /* ================================
+START DASHBOARD IMMEDIATELY
+================================ */
+
+require("./dashboard")(client);
+
+/* ================================
 READY EVENT
 ================================ */
 
 client.once("ready", () => {
 
 console.log(`Logged in as ${client.user.tag}`);
-
-/* START DASHBOARD AFTER BOT IS READY */
-
-require("./dashboard")(client);
 
 });
 
@@ -46,14 +48,10 @@ client.on("interactionCreate", async interaction => {
 
 if(!interaction.isButton()) return;
 
-/* LOAD CONFIG */
-
 const config = JSON.parse(fs.readFileSync("./config.json"));
 const logChannel = interaction.guild.channels.cache.get(config.logsChannel);
 
-/* ================================
-OPEN TICKET
-================================ */
+/* OPEN TICKET */
 
 if(interaction.customId === "open_ticket"){
 
@@ -113,8 +111,6 @@ content:`✅ Ticket created: ${ticketChannel}`,
 ephemeral:true
 });
 
-/* LOG CREATION */
-
 if(logChannel){
 
 logChannel.send({
@@ -144,9 +140,7 @@ ephemeral:true
 
 }
 
-/* ================================
-CLOSE TICKET
-================================ */
+/* CLOSE TICKET */
 
 if(interaction.customId === "close_ticket"){
 
