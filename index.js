@@ -28,8 +28,14 @@ GatewayIntentBits.MessageContent
 READY EVENT
 ================================ */
 
-client.once("ready",()=>{
+client.once("clientReady", () => {
+
 console.log(`Logged in as ${client.user.tag}`);
+
+/* START DASHBOARD AFTER BOT IS READY */
+
+require("./dashboard")(client);
+
 });
 
 /* ================================
@@ -184,11 +190,5 @@ LOGIN BOT
 ================================ */
 
 client.login(process.env.TOKEN);
-
-/* ================================
-LOAD DASHBOARD
-================================ */
-
-require("./dashboard")(client);
 
 module.exports = client;
