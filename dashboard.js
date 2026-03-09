@@ -9,7 +9,9 @@ require("dotenv").config();
 module.exports = (client) => {
 
 const app = express();
-
+app.get("/test", (req,res)=>{
+res.send("dashboard working");
+});
 /* ================================
 PASSPORT CONFIG
 ================================ */
