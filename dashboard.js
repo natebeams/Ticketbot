@@ -9,9 +9,15 @@ require("dotenv").config();
 module.exports = (client) => {
 
 const app = express();
+
+/* ================================
+TEST ROUTE
+================================ */
+
 app.get("/test", (req,res)=>{
 res.send("dashboard working");
 });
+
 /* ================================
 PASSPORT CONFIG
 ================================ */
@@ -20,13 +26,13 @@ passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((obj, done) => done(null, obj));
 
 passport.use(new DiscordStrategy({
-    clientID: process.env.CLIENT_ID,
-    clientSecret: process.env.CLIENT_SECRET,
-    callbackURL: process.env.CALLBACK_URL,
-    scope: ["identify", "guilds"]
+clientID: process.env.CLIENT_ID,
+clientSecret: process.env.CLIENT_SECRET,
+callbackURL: process.env.CALLBACK_URL,
+scope: ["identify","guilds"]
 },
 (accessToken, refreshToken, profile, done) => {
-    return done(null, profile);
+return done(null, profile);
 }));
 
 /* ================================
@@ -34,80 +40,92 @@ SESSION
 ================================ */
 
 app.use(session({
-    secret: "ticket-dashboard-secret",
-    resave: false,
-    saveUninitialized: false
+secret: process.env.SESSION_SECRET,
+resave: false,
+saveUninitialized: false
 }));
 
 app.use(passport.initialize());
 app.use(passport.session());
 
 /* ================================
+BODY PARSER (IMPORTANT)
+================================ */
+
+app.use(express.json());
+app.use(express.urlencoded({ extended:true }));
+
+/* ================================
 VIEWS
 ================================ */
 
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
+app.set("view engine","ejs");
+app.set("views", path.join(__dirname,"views"));
 
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname,"public")));
 
 /* ================================
 LOGIN ROUTES
 ================================ */
 
-app.get("/login", passport.authenticate("discord"));
+app.get("/login",
+passport.authenticate("discord"));
 
-app.get("/callback",
-    passport.authenticate("discord", { failureRedirect: "/" }),
-    (req, res) => {
-        res.redirect("/dashboard");
-    }
-);
+/* FIXED CALLBACK PATH */
+
+app.get("/auth/discord/callback",
+passport.authenticate("discord",{ failureRedirect:"/" }),
+(req,res)=>{
+res.redirect("/dashboard");
+});
 
 /* ================================
 LOGOUT
 ================================ */
 
-app.get("/logout", (req, res) => {
-    req.logout(function(err) {
-        if (err) console.error(err);
-        res.redirect("/");
-    });
+app.get("/logout",(req,res)=>{
+req.logout(function(err){
+if(err) console.error(err);
+res.redirect("/");
+});
 });
 
 /* ================================
 HOME PAGE
 ================================ */
 
-app.get("/", (req, res) => {
-    res.send("Ticket Dashboard Online");
+app.get("/",(req,res)=>{
+res.send(`
+<h2>Ticket Dashboard</h2>
+<a href="/login">Login with Discord</a>
+`);
 });
 
 /* ================================
 DASHBOARD
 ================================ */
 
-app.get("/dashboard", (req, res) => {
+app.get("/dashboard",(req,res)=>{
 
-    if (!req.user) return res.redirect("/login");
+if(!req.user) return res.redirect("/login");
 
-    const guild = client.guilds.cache.get(process.env.GUILD_ID);
+const guild = client.guilds.cache.get(process.env.GUILD_ID);
 
-    if (!guild) {
-        return res.send("Server not found.");
-    }
+if(!guild){
+return res.send("Server not found.");
+}
 
-    const tickets = guild.channels.cache
-        .filter(c => c.name.startsWith("ticket-"))
-        .map(c => ({
-            name: c.name,
-            id: c.id
-        }));
+const tickets = guild.channels.cache
+.filter(c => c.name.startsWith("ticket-"))
+.map(c => ({
+name:c.name,
+id:c.id
+}));
 
-    res.render("tickets", {
-        user: req.user,
-        tickets
-    });
+res.render("tickets",{
+user:req.user,
+tickets
+});
 
 });
 
@@ -115,18 +133,20 @@ app.get("/dashboard", (req, res) => {
 CLOSE TICKET
 ================================ */
 
-app.get("/close/:id", async (req, res) => {
+app.get("/close/:id", async (req,res)=>{
 
-    const guild = client.guilds.cache.get(process.env.GUILD_ID);
-    if (!guild) return res.redirect("/dashboard");
+if(!req.user) return res.redirect("/login");
 
-    const channel = guild.channels.cache.get(req.params.id);
+const guild = client.guilds.cache.get(process.env.GUILD_ID);
+if(!guild) return res.redirect("/dashboard");
 
-    if (channel) {
-        await channel.delete().catch(() => {});
-    }
+const channel = guild.channels.cache.get(req.params.id);
 
-    res.redirect("/dashboard");
+if(channel){
+await channel.delete().catch(()=>{});
+}
+
+res.redirect("/dashboard");
 
 });
 
@@ -136,8 +156,8 @@ START SERVER
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-    console.log(`Dashboard running on port ${PORT}`);
+app.listen(PORT,()=>{
+console.log(`Dashboard running on port ${PORT}`);
 });
 
 };
