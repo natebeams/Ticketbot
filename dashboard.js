@@ -42,7 +42,10 @@ SESSION
 app.use(session({
 secret: process.env.SESSION_SECRET || "ticket-dashboard-secret",
 resave:false,
-saveUninitialized:false
+saveUninitialized:false,
+cookie:{
+secure:false
+}
 }));
 
 app.use(passport.initialize());
@@ -81,8 +84,10 @@ LOGOUT
 ================================ */
 
 app.get("/logout",(req,res)=>{
-req.logout(()=>{});
+req.logout(function(err){
+if(err){console.error(err);}
 res.redirect("/");
+});
 });
 
 /* ================================
@@ -114,12 +119,16 @@ return res.send("Server not found.");
 
 const channels = await guild.channels.fetch();
 
-const tickets = [...channels.values()]
-.filter(c => c && c.name && c.name.startsWith("ticket-"))
-.map(c => ({
-name:c.name,
-id:c.id
-}));
+const tickets = [];
+
+channels.forEach(channel=>{
+if(channel && channel.name && channel.name.startsWith("ticket-")){
+tickets.push({
+name:channel.name,
+id:channel.id
+});
+}
+});
 
 res.render("tickets",{
 user:req.user,
@@ -146,9 +155,10 @@ if(!req.user) return res.redirect("/login");
 try{
 
 const guild = await client.guilds.fetch(process.env.GUILD_ID).catch(()=>null);
+
 if(!guild) return res.redirect("/dashboard");
 
-const channel = guild.channels.cache.get(req.params.id);
+const channel = await guild.channels.fetch(req.params.id).catch(()=>null);
 
 if(channel){
 await channel.delete().catch(()=>{});
@@ -177,7 +187,7 @@ START SERVER (RAILWAY SAFE)
 
 const PORT = process.env.PORT || 8080;
 
-app.listen(PORT, "0.0.0.0", () => {
+app.listen(PORT,"0.0.0.0",()=>{
 console.log(`Dashboard running on port ${PORT}`);
 });
 
