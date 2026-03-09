@@ -51,7 +51,6 @@ GatewayIntentBits.GuildMembers
 START DASHBOARD
 ================================ */
 
-require("./dashboard")(client);
 
 /* ================================
 READY EVENT
