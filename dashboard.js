@@ -2,10 +2,14 @@ const express = require("express");
 const session = require("express-session");
 const passport = require("passport");
 const DiscordStrategy = require("passport-discord").Strategy;
+const path = require("path");
 
 module.exports = (client) => {
 
 const app = express();
+
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
 
 app.get("/health", (req, res) => {
   res.status(200).send("OK");
@@ -61,7 +65,6 @@ res.send("Logged in with Discord!");
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, "0.0.0.0", () => {
- console.log(`Dashboard running on port ${PORT}`);
+  console.log(`Dashboard running on port ${PORT}`);
 });
-
 };
