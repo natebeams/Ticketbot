@@ -20,12 +20,13 @@ const client = new Client({
 intents:[
 GatewayIntentBits.Guilds,
 GatewayIntentBits.GuildMessages,
-GatewayIntentBits.MessageContent
+GatewayIntentBits.MessageContent,
+GatewayIntentBits.GuildMembers
 ]
 });
 
 /* ================================
-START DASHBOARD IMMEDIATELY
+START DASHBOARD
 ================================ */
 
 require("./dashboard")(client);
@@ -34,7 +35,7 @@ require("./dashboard")(client);
 READY EVENT
 ================================ */
 
-client.once("ready", () => {
+client.once("clientReady", () => {
 
 console.log(`Logged in as ${client.user.tag}`);
 
@@ -48,10 +49,20 @@ client.on("interactionCreate", async interaction => {
 
 if(!interaction.isButton()) return;
 
-const config = JSON.parse(fs.readFileSync("./config.json"));
+let config;
+
+try{
+config = JSON.parse(fs.readFileSync("./config.json"));
+}catch(err){
+console.error("Config error:",err);
+return;
+}
+
 const logChannel = interaction.guild.channels.cache.get(config.logsChannel);
 
-/* OPEN TICKET */
+/* ================================
+OPEN TICKET
+================================ */
 
 if(interaction.customId === "open_ticket"){
 
@@ -134,13 +145,15 @@ console.error("Ticket error:", err);
 interaction.reply({
 content:"❌ Failed to create ticket. Check settings.",
 ephemeral:true
-});
+}).catch(()=>{});
 
 }
 
 }
 
-/* CLOSE TICKET */
+/* ================================
+CLOSE TICKET
+================================ */
 
 if(interaction.customId === "close_ticket"){
 
