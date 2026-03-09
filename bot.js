@@ -13,6 +13,28 @@ const transcripts = require("discord-html-transcripts");
 require("dotenv").config();
 
 /* ================================
+LOAD CONFIG FILES
+================================ */
+
+let config = {};
+let settings = {};
+
+try{
+config = JSON.parse(fs.readFileSync("./config.json"));
+}catch(err){
+console.error("config.json error:",err);
+}
+
+try{
+settings = JSON.parse(fs.readFileSync("./settings.json"));
+}catch(err){
+console.error("settings.json error:",err);
+}
+
+/* merge them together */
+const CONFIG = { ...config, ...settings };
+
+/* ================================
 DISCORD CLIENT
 ================================ */
 
@@ -49,16 +71,7 @@ client.on("interactionCreate", async interaction => {
 
 if(!interaction.isButton()) return;
 
-let config;
-
-try{
-config = JSON.parse(fs.readFileSync("./config.json"));
-}catch(err){
-console.error("Config error:",err);
-return;
-}
-
-const logChannel = interaction.guild.channels.cache.get(config.logsChannel);
+const logChannel = interaction.guild.channels.cache.get(CONFIG.logsChannel);
 
 /* ================================
 OPEN TICKET
@@ -81,7 +94,7 @@ fs.writeFileSync("./ticketCount.json", JSON.stringify({ count: ticketNumber }));
 const ticketChannel = await guild.channels.create({
 name:`ticket-${ticketNumber}`,
 type:ChannelType.GuildText,
-parent: config.ticketCategory || null,
+parent: CONFIG.ticketCategory || null,
 
 permissionOverwrites:[
 {
@@ -96,7 +109,7 @@ PermissionsBitField.Flags.SendMessages
 ]
 },
 {
-id:config.supportRole,
+id:CONFIG.supportRole,
 allow:[
 PermissionsBitField.Flags.ViewChannel,
 PermissionsBitField.Flags.SendMessages
@@ -113,7 +126,7 @@ const closeButton = new ButtonBuilder()
 const row = new ActionRowBuilder().addComponents(closeButton);
 
 await ticketChannel.send({
-content:`${interaction.user} <@&${config.supportRole}>`,
+content:`${interaction.user} <@&${CONFIG.supportRole}>`,
 components:[row]
 });
 

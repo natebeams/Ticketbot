@@ -1,24 +1,21 @@
 {
-  "name": "ticket-dashboard-bot",
+  "name": "ticketbot",
   "version": "1.0.0",
-  "description": "Discord ticket bot with web dashboard",
+  "description": "Discord ticket bot with dashboard",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
-  },
-  "engines": {
-    "node": ">=18"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "discord-html-transcripts": "^3.2.0",
-    "discord.js": "^14.25.1",
+    "discord.js": "^14.14.1",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.9",
     "express": "^4.19.2",
     "express-session": "^1.17.3",
-    "passport": "^0.6.0",
+    "passport": "^0.7.0",
     "passport-discord": "^0.1.4"
   }
 }
