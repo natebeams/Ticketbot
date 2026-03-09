@@ -14,7 +14,7 @@ const app = express();
 TEST ROUTE
 ================================ */
 
-app.get("/test", (req,res)=>{
+app.get("/test",(req,res)=>{
 res.send("dashboard working");
 });
 
@@ -29,9 +29,9 @@ passport.use(new DiscordStrategy({
 clientID: process.env.CLIENT_ID,
 clientSecret: process.env.CLIENT_SECRET,
 callbackURL: process.env.CALLBACK_URL,
-scope: ["identify","guilds"]
+scope:["identify","guilds"]
 },
-(accessToken, refreshToken, profile, done) => {
+(accessToken, refreshToken, profile, done)=>{
 return done(null, profile);
 }));
 
@@ -41,8 +41,8 @@ SESSION
 
 app.use(session({
 secret: process.env.SESSION_SECRET || "ticket-dashboard-secret",
-resave: false,
-saveUninitialized: false
+resave:false,
+saveUninitialized:false
 }));
 
 app.use(passport.initialize());
@@ -81,10 +81,8 @@ LOGOUT
 ================================ */
 
 app.get("/logout",(req,res)=>{
-req.logout(function(err){
-if(err) console.error(err);
+req.logout(()=>{});
 res.redirect("/");
-});
 });
 
 /* ================================
@@ -99,7 +97,7 @@ res.send(`
 });
 
 /* ================================
-DASHBOARD (FIXED)
+DASHBOARD
 ================================ */
 
 app.get("/dashboard", async (req,res)=>{
@@ -108,7 +106,7 @@ if(!req.user) return res.redirect("/login");
 
 try{
 
-const guild = await client.guilds.fetch(process.env.GUILD_ID);
+const guild = await client.guilds.fetch(process.env.GUILD_ID).catch(()=>null);
 
 if(!guild){
 return res.send("Server not found.");
@@ -130,8 +128,8 @@ tickets
 
 }catch(err){
 
-console.error("Dashboard error:", err);
-res.send("Dashboard crashed. Check Railway logs.");
+console.error("Dashboard error:",err);
+res.send("Dashboard crashed.");
 
 }
 
@@ -147,7 +145,7 @@ if(!req.user) return res.redirect("/login");
 
 try{
 
-const guild = await client.guilds.fetch(process.env.GUILD_ID);
+const guild = await client.guilds.fetch(process.env.GUILD_ID).catch(()=>null);
 if(!guild) return res.redirect("/dashboard");
 
 const channel = guild.channels.cache.get(req.params.id);
@@ -168,18 +166,18 @@ res.redirect("/dashboard");
 ERROR HANDLER
 ================================ */
 
-app.use((err, req, res, next) => {
-console.error("Express error:", err);
+app.use((err, req, res, next)=>{
+console.error("Express error:",err);
 res.status(500).send("Internal server error.");
 });
 
 /* ================================
-START SERVER
+START SERVER (RAILWAY SAFE)
 ================================ */
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, "0.0.0.0", () => {
+app.listen(PORT, "0.0.0.0", ()=>{
 console.log(`Dashboard running on port ${PORT}`);
 });
 
