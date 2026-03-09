@@ -7,6 +7,10 @@ module.exports = (client) => {
 
 const app = express();
 
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
 app.use(session({
 secret: process.env.SESSION_SECRET,
 resave: false,
