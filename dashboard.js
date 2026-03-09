@@ -39,6 +39,10 @@ app.get("/test", (req,res)=>{
 res.send("dashboard working");
 });
 
+app.get("/dashboard", (req, res) => {
+  res.render("dashboard");
+});
+
 app.get("/login",
 passport.authenticate("discord"));
 
