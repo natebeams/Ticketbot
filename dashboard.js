@@ -175,10 +175,16 @@ res.status(500).send("Internal server error.");
 START SERVER (RAILWAY SAFE)
 ================================ */
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, "0.0.0.0", ()=>{
+try {
+
+app.listen(PORT, "0.0.0.0", () => {
 console.log(`Dashboard running on port ${PORT}`);
 });
 
-};
+} catch(err) {
+
+console.error("Server failed to start:", err);
+
+}
