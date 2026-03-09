@@ -99,22 +99,24 @@ res.send(`
 });
 
 /* ================================
-DASHBOARD
+DASHBOARD (FIXED)
 ================================ */
 
-app.get("/dashboard",(req,res)=>{
+app.get("/dashboard", async (req,res)=>{
 
 if(!req.user) return res.redirect("/login");
 
 try{
 
-const guild = client.guilds.cache.get(process.env.GUILD_ID);
+const guild = await client.guilds.fetch(process.env.GUILD_ID);
 
 if(!guild){
 return res.send("Server not found.");
 }
 
-const tickets = guild.channels.cache
+const channels = await guild.channels.fetch();
+
+const tickets = [...channels.values()]
 .filter(c => c && c.name && c.name.startsWith("ticket-"))
 .map(c => ({
 name:c.name,
@@ -145,7 +147,7 @@ if(!req.user) return res.redirect("/login");
 
 try{
 
-const guild = client.guilds.cache.get(process.env.GUILD_ID);
+const guild = await client.guilds.fetch(process.env.GUILD_ID);
 if(!guild) return res.redirect("/dashboard");
 
 const channel = guild.channels.cache.get(req.params.id);
