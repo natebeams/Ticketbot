@@ -28,7 +28,7 @@ GatewayIntentBits.MessageContent
 READY EVENT
 ================================ */
 
-client.once("clientReady",()=>{
+client.once("ready",()=>{
 console.log(`Logged in as ${client.user.tag}`);
 });
 
@@ -180,32 +180,15 @@ console.error("Close ticket error:",err);
 });
 
 /* ================================
-LOGIN
+LOGIN BOT
 ================================ */
 
 client.login(process.env.TOKEN);
 
 /* ================================
-RAILWAY KEEP ALIVE SERVER
+LOAD DASHBOARD
 ================================ */
 
-const express = require("express");
-const app = express();
-
-app.get("/", (req,res)=>{
-res.send("Ticket Bot Running");
-});
-
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT,()=>{
-console.log(`Web server running on port ${PORT}`);
-});
-
-/* ================================
-DASHBOARD
-================================ */
-
-require("./dashboard");
+require("./dashboard")(client);
 
 module.exports = client;
