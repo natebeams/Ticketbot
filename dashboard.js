@@ -40,7 +40,7 @@ SESSION
 ================================ */
 
 app.use(session({
-secret: process.env.SESSION_SECRET,
+secret: process.env.SESSION_SECRET || "ticket-dashboard-secret",
 resave: false,
 saveUninitialized: false
 }));
@@ -49,7 +49,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 /* ================================
-BODY PARSER (IMPORTANT)
+BODY PARSER
 ================================ */
 
 app.use(express.json());
@@ -68,10 +68,7 @@ app.use(express.static(path.join(__dirname,"public")));
 LOGIN ROUTES
 ================================ */
 
-app.get("/login",
-passport.authenticate("discord"));
-
-/* FIXED CALLBACK PATH */
+app.get("/login", passport.authenticate("discord"));
 
 app.get("/auth/discord/callback",
 passport.authenticate("discord",{ failureRedirect:"/" }),
@@ -109,6 +106,8 @@ app.get("/dashboard",(req,res)=>{
 
 if(!req.user) return res.redirect("/login");
 
+try{
+
 const guild = client.guilds.cache.get(process.env.GUILD_ID);
 
 if(!guild){
@@ -116,7 +115,7 @@ return res.send("Server not found.");
 }
 
 const tickets = guild.channels.cache
-.filter(c => c.name.startsWith("ticket-"))
+.filter(c => c && c.name && c.name.startsWith("ticket-"))
 .map(c => ({
 name:c.name,
 id:c.id
@@ -126,6 +125,13 @@ res.render("tickets",{
 user:req.user,
 tickets
 });
+
+}catch(err){
+
+console.error("Dashboard error:", err);
+res.send("Dashboard crashed. Check Railway logs.");
+
+}
 
 });
 
@@ -137,6 +143,8 @@ app.get("/close/:id", async (req,res)=>{
 
 if(!req.user) return res.redirect("/login");
 
+try{
+
 const guild = client.guilds.cache.get(process.env.GUILD_ID);
 if(!guild) return res.redirect("/dashboard");
 
@@ -146,8 +154,21 @@ if(channel){
 await channel.delete().catch(()=>{});
 }
 
+}catch(err){
+console.error("Close ticket error:",err);
+}
+
 res.redirect("/dashboard");
 
+});
+
+/* ================================
+ERROR HANDLER (VERY IMPORTANT)
+================================ */
+
+app.use((err, req, res, next) => {
+console.error("Express error:", err);
+res.status(500).send("Internal server error.");
 });
 
 /* ================================
