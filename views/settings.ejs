@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Bot Settings</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial;
+background:#0f172a;
+color:white;
+display:flex;
+}
+
+/* Sidebar */
+
+.sidebar{
+width:220px;
+background:#020617;
+height:100vh;
+padding:20px;
+}
+
+.sidebar h2{
+margin-bottom:30px;
+}
+
+.sidebar a{
+display:block;
+color:#cbd5f5;
+text-decoration:none;
+margin:15px 0;
+font-size:16px;
+}
+
+.sidebar a:hover{
+color:white;
+}
+
+/* Main area */
+
+.main{
+flex:1;
+padding:40px;
+}
+
+/* Settings cards */
+
+.setting{
+background:#1e293b;
+padding:20px;
+border-radius:10px;
+margin-bottom:20px;
+width:400px;
+}
+
+/* Dropdowns */
+
+select{
+width:100%;
+padding:10px;
+margin-top:10px;
+background:#020617;
+border:none;
+color:white;
+border-radius:5px;
+}
+
+button{
+margin-top:15px;
+padding:10px 20px;
+border:none;
+background:#3b82f6;
+color:white;
+border-radius:6px;
+cursor:pointer;
+}
+
+button:hover{
+background:#2563eb;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+<h2>Bot Panel</h2>
+
+<a href="/dashboard">🏠 Dashboard</a>
+<a href="/panels">📋 Panels</a>
+<a href="/tickets">🎫 Tickets</a>
+<a href="/settings">⚙ Settings</a>
+
+</div>
+
+<div class="main">
+
+<h1>Settings</h1>
+
+<div class="setting">
+
+<b>Ticket Category</b>
+
+<select id="ticketCategory"></select>
+
+<button onclick="saveSettings()">Save</button>
+
+</div>
+
+<div class="setting">
+
+<b>Support Role</b>
+
+<select id="supportRole"></select>
+
+<button onclick="saveSettings()">Save</button>
+
+</div>
+
+<div class="setting">
+
+<b>Logs Channel</b>
+
+<select id="logsChannel"></select>
+
+<button onclick="saveSettings()">Save</button>
+
+</div>
+
+</div>
+
+<script>
+
+/* SAVE SETTINGS */
+
+async function saveSettings(){
+
+const ticketCategory = document.getElementById("ticketCategory").value;
+const supportRole = document.getElementById("supportRole").value;
+const logsChannel = document.getElementById("logsChannel").value;
+
+await fetch("/save-settings", {
+method: "POST",
+headers: {
+"Content-Type": "application/json"
+},
+body: JSON.stringify({
+ticketCategory,
+supportRole,
+logsChannel
+})
+});
+
+alert("Settings saved!");
+
+}
+
+/* LOAD ROLES + CHANNELS INTO DROPDOWNS */
+
+async function loadOptions(){
+
+const res = await fetch("/guild-data");
+const data = await res.json();
+
+const roleSelect = document.getElementById("supportRole");
+const categorySelect = document.getElementById("ticketCategory");
+const logsSelect = document.getElementById("logsChannel");
+
+/* Roles */
+
+data.roles.forEach(role=>{
+const option = document.createElement("option");
+option.value = role.id;
+option.text = role.name;
+roleSelect.appendChild(option);
+});
+
+/* Categories */
+
+data.categories.forEach(cat=>{
+const option = document.createElement("option");
+option.value = cat.id;
+option.text = cat.name;
+categorySelect.appendChild(option);
+});
+
+/* Text Channels */
+
+data.channels.forEach(ch=>{
+const option = document.createElement("option");
+option.value = ch.id;
+option.text = ch.name;
+logsSelect.appendChild(option);
+});
+
+}
+
+loadOptions();
+
+</script>
+<script>
+
+async function loadSavedSettings(){
+
+const res = await fetch("/load-settings")
+
+const settings = await res.json()
+
+if(settings.supportRole){
+document.getElementById("supportRole").value =
+settings.supportRole
+}
+
+if(settings.ticketCategory){
+document.getElementById("ticketCategory").value =
+settings.ticketCategory
+}
+
+if(settings.logsChannel){
+document.getElementById("logsChannel").value =
+settings.logsChannel
+}
+
+}
+
+loadSavedSettings()
+
+</script>
+</body>
+</html>

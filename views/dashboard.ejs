@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Bot Dashboard</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial;
+background:#0f172a;
+color:white;
+display:flex;
+}
+
+/* Sidebar */
+
+.sidebar{
+width:220px;
+background:#020617;
+height:100vh;
+padding:20px;
+}
+
+.sidebar h2{
+margin-bottom:30px;
+}
+
+.sidebar a{
+display:block;
+color:#cbd5f5;
+text-decoration:none;
+margin:15px 0;
+font-size:16px;
+}
+
+.sidebar a:hover{
+color:white;
+}
+
+/* Main area */
+
+.main{
+flex:1;
+padding:40px;
+}
+
+.cards{
+display:flex;
+flex-wrap:wrap;
+gap:20px;
+}
+
+/* Cards */
+
+.card{
+background:#1e293b;
+padding:20px;
+border-radius:10px;
+width:220px;
+}
+
+h1{
+margin-bottom:30px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- Sidebar -->
+
+<div class="sidebar">
+
+<h2>Bot Panel</h2>
+
+<a href="/dashboard">🏠 Dashboard</a>
+<a href="/panels">📋 Panels</a>
+<a href="/tickets">🎫 Tickets</a>
+<a href="/settings">⚙ Settings</a>
+
+</div>
+
+<!-- Main Content -->
+
+<div class="main">
+
+<h1>Dashboard</h1>
+
+<div class="cards">
+
+<div class="card">
+<b>Bot Status</b><br>
+
+<% if(stats.status === "Online"){ %>
+<span style="color:lime;">🟢 Online</span>
+<% } else { %>
+<span style="color:red;">🔴 Offline</span>
+<% } %>
+
+</div>
+
+<div class="card">
+<b>Latency</b><br>
+<%= stats.latency %> ms
+</div>
+
+<div class="card">
+<b>Uptime</b><br>
+<%= stats.uptime %> seconds
+</div>
+
+<div class="card">
+<b>Open Tickets</b><br>
+<%= stats.openTickets %>
+</div>
+
+<div class="card">
+<b>Total Tickets</b><br>
+<%= stats.totalTickets %>
+</div>
+
+<div class="card">
+<b>Server</b><br>
+<%= stats.serverName %>
+</div>
+
+</div>
+
+<h2>Ticket Statistics</h2>
+
+<canvas id="ticketChart" width="600" height="300"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+const ctx = document.getElementById("ticketChart");
+
+new Chart(ctx, {
+type: "bar",
+data: {
+labels: ["Open Tickets", "Total Tickets"],
+datasets: [{
+label: "Tickets",
+data: [Number("<%= stats.openTickets %>"), Number("<%= stats.totalTickets %>")]
+}]
+},
+options: {
+responsive: true
+}
+});
+
+</script>
+
+</div>
+
+</body>
+</html>

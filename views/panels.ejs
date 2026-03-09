@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Ticket Panels</title>
+
+<style>
+
+body{
+    background:#0f172a;
+    font-family:Arial;
+    color:white;
+}
+
+.container{
+    width:600px;
+    margin:auto;
+    margin-top:50px;
+}
+
+h1{
+    text-align:center;
+}
+
+.box{
+    background:#1e293b;
+    padding:25px;
+    border-radius:10px;
+}
+
+input, textarea{
+
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    margin-bottom:15px;
+
+    background:#0f172a;
+    border:1px solid #334155;
+    color:white;
+    border-radius:6px;
+}
+
+button{
+
+    width:100%;
+    padding:12px;
+
+    background:#2563eb;
+    border:none;
+    border-radius:6px;
+
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#1d4ed8;
+}
+
+.nav{
+    text-align:center;
+    margin-bottom:25px;
+}
+
+.nav a{
+    color:#60a5fa;
+    margin:10px;
+    text-decoration:none;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="nav">
+<a href="/dashboard">Dashboard</a>
+<a href="/panels">Panels</a>
+<a href="/tickets">Tickets</a>
+<a href="/settings">Settings</a>
+</div>
+
+<h1>Create Ticket Panel</h1>
+
+<div class="box">
+
+<form action="/create-panel" method="POST">
+
+<label>Panel Title</label>
+<input name="title" placeholder="Support Panel">
+
+<label>Description</label>
+<textarea name="description" placeholder="Click the button below to open a ticket"></textarea>
+
+<label>Button Label</label>
+<input name="button" placeholder="Open Ticket">
+
+<label>Ticket Channel ID</label>
+<input name="channelId" placeholder="1234567890123">
+
+<label>Staff Role ID</label>
+<input name="staffRole" placeholder="9876543210987">
+
+<button type="submit">Create Panel</button>
+
+</form>
+
+</div>
+
+</div>
+
+</body>
+</html>
