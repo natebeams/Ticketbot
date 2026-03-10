@@ -4,6 +4,7 @@ const passport = require("passport");
 const DiscordStrategy = require("passport-discord").Strategy;
 const path = require("path");
 const fs = require("fs");
+const { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle } = require("discord.js");
 
 module.exports = (client) => {
 
@@ -165,6 +166,62 @@ fs.readFileSync("./settings.json")
 );
 
 res.json(settings);
+
+});
+
+/* ================================
+CREATE TICKET PANEL
+================================ */
+
+app.post("/create-panel", async (req,res)=>{
+
+try{
+
+if(!fs.existsSync("./settings.json")){
+return res.json({success:false,error:"Settings not configured"});
+}
+
+const settings = JSON.parse(
+fs.readFileSync("./settings.json")
+);
+
+const guild = client.guilds.cache.first();
+
+if(!guild){
+return res.json({success:false,error:"Guild not found"});
+}
+
+const channel = guild.channels.cache.get(settings.logsChannel);
+
+if(!channel){
+return res.json({success:false,error:"Channel not found"});
+}
+
+const embed = new EmbedBuilder()
+.setTitle("Support Ticket")
+.setDescription("Click the button below to open a ticket.")
+.setColor(0x5865F2);
+
+const button = new ButtonBuilder()
+.setCustomId("create_ticket")
+.setLabel("Create Ticket")
+.setStyle(ButtonStyle.Primary);
+
+const row = new ActionRowBuilder().addComponents(button);
+
+await channel.send({
+embeds:[embed],
+components:[row]
+});
+
+res.json({success:true});
+
+}catch(err){
+
+console.error(err);
+res.json({success:false,error:"Panel creation failed"});
+
+}
 
 });
 
