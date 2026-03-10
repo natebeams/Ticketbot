@@ -85,10 +85,13 @@ text-decoration:none;
 <div class="box">
 
 <label>Panel Title</label>
-<input name="title" placeholder="Support/Report Ticket">
+<input id="panelTitle" placeholder="Support/Report Ticket">
 
 <label>Description</label>
 <textarea id="panelDescription" placeholder="Click the button below to open a ticket"></textarea>
+
+<label>Button Text</label>
+<input id="panelButton" placeholder="Create Ticket">
 
 <label>Channel ID (where panel will be sent)</label>
 <input id="panelChannel" placeholder="1234567890123">
@@ -103,9 +106,10 @@ text-decoration:none;
 
 async function createPanel(){
 
-const channelID = document.getElementById("panelChannel").value
+const channelId = document.getElementById("panelChannel").value
 const title = document.getElementById("panelTitle").value
 const description = document.getElementById("panelDescription").value
+const button = document.getElementById("panelButton").value
 
 const res = await fetch("/create-panel",{
 method:"POST",
@@ -113,18 +117,19 @@ headers:{
 "Content-Type":"application/json"
 },
 body:JSON.stringify({
-channelID: channelID,
+channelId: channelId,
 title: title,
-description: description
+description: description,
+button: button
 })
 })
 
 const data = await res.json()
 
 if(data.success){
-alert("Panel created successfully!")
+alert("✅ Panel created successfully!")
 }else{
-alert(data.error)
+alert("❌ "+data.error)
 }
 
 }
