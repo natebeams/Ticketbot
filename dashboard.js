@@ -132,7 +132,7 @@ res.json(dashboardSettings);
 
 /* CREATE PANEL */
 
-app.post("/create-panel",async(req,res)=>{
+app.post("/create-panel", async (req,res)=>{
 
 try{
 
@@ -142,21 +142,28 @@ if(!guild){
 return res.json({success:false,error:"Guild not found"});
 }
 
-const channelID = dashboardSettings.logsChannel;
+/* channel from dashboard input */
+
+const channelID = req.body.channelID;
 
 if(!channelID){
-return res.json({success:false,error:"Logs channel not set"});
+return res.json({success:false,error:"Panel channel not provided"});
 }
 
 const channel = guild.channels.cache.get(channelID);
 
 if(!channel){
-return res.json({success:false,error:"Channel not found in guild"});
+return res.json({success:false,error:"Channel not found"});
 }
 
+/* custom text */
+
+const title = req.body.title || "Support Ticket";
+const description = req.body.description || "Click the button below to open a ticket.";
+
 const embed = new EmbedBuilder()
-.setTitle("Support Ticket")
-.setDescription("Click the button below to open a ticket.")
+.setTitle(title)
+.setDescription(description)
 .setColor(0x5865F2);
 
 const button = new ButtonBuilder()
