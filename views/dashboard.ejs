@@ -70,6 +70,17 @@ margin-bottom:30px;
 
 <body>
 
+<%
+const statsSafe = stats || {
+status: "Offline",
+latency: 0,
+uptime: 0,
+openTickets: 0,
+totalTickets: 0,
+serverName: "Unknown"
+};
+%>
+
 <!-- Sidebar -->
 
 <div class="sidebar">
@@ -94,7 +105,7 @@ margin-bottom:30px;
 <div class="card">
 <b>Bot Status</b><br>
 
-<% if(stats.status === "Online"){ %>
+<% if(statsSafe.status === "Online"){ %>
 <span style="color:lime;">🟢 Online</span>
 <% } else { %>
 <span style="color:red;">🔴 Offline</span>
@@ -104,27 +115,27 @@ margin-bottom:30px;
 
 <div class="card">
 <b>Latency</b><br>
-<%= stats.latency %> ms
+<%= statsSafe.latency %> ms
 </div>
 
 <div class="card">
 <b>Uptime</b><br>
-<%= stats.uptime %> seconds
+<%= statsSafe.uptime %> seconds
 </div>
 
 <div class="card">
 <b>Open Tickets</b><br>
-<%= stats.openTickets %>
+<%= statsSafe.openTickets %>
 </div>
 
 <div class="card">
 <b>Total Tickets</b><br>
-<%= stats.totalTickets %>
+<%= statsSafe.totalTickets %>
 </div>
 
 <div class="card">
 <b>Server</b><br>
-<%= stats.serverName %>
+<%= statsSafe.serverName %>
 </div>
 
 </div>
@@ -145,7 +156,7 @@ data: {
 labels: ["Open Tickets", "Total Tickets"],
 datasets: [{
 label: "Tickets",
-data: [Number("<%= stats.openTickets %>"), Number("<%= stats.totalTickets %>")]
+data: [Number("<%= statsSafe.openTickets %>"), Number("<%= statsSafe.totalTickets %>")]
 }]
 },
 options: {
