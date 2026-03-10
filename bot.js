@@ -1,4 +1,4 @@
-const { 
+const {
 Client,
 GatewayIntentBits,
 ActionRowBuilder,
@@ -21,17 +21,12 @@ let settings = {};
 
 try{
 config = JSON.parse(fs.readFileSync("./config.json"));
-}catch(err){
-console.error("config.json error:",err);
-}
+}catch{}
 
 try{
 settings = JSON.parse(fs.readFileSync("./settings.json"));
-}catch(err){
-console.error("settings.json error:",err);
-}
+}catch{}
 
-/* merge them together */
 const CONFIG = { ...config, ...settings };
 
 /* ================================
@@ -42,8 +37,7 @@ const client = new Client({
 intents:[
 GatewayIntentBits.Guilds,
 GatewayIntentBits.GuildMessages,
-GatewayIntentBits.MessageContent,
-GatewayIntentBits.GuildMembers
+GatewayIntentBits.MessageContent
 ]
 });
 
@@ -54,8 +48,9 @@ READY EVENT
 client.once("clientReady", () => {
 console.log(`Logged in as ${client.user.tag}`);
 });
+
 /* ================================
-INTERACTIONS
+BUTTON INTERACTIONS
 ================================ */
 
 client.on("interactionCreate", async interaction => {
@@ -65,7 +60,7 @@ if(!interaction.isButton()) return;
 const logChannel = interaction.guild.channels.cache.get(CONFIG.logsChannel);
 
 /* ================================
-OPEN TICKET
+CREATE TICKET
 ================================ */
 
 if(interaction.customId === "create_ticket"){
@@ -75,6 +70,9 @@ try{
 await interaction.deferReply({ ephemeral:true });
 
 const guild = interaction.guild;
+
+/* ticket number system */
+
 let ticketNumber = 1;
 
 if(fs.existsSync("./ticketCount.json")){
@@ -82,13 +80,14 @@ const data = JSON.parse(fs.readFileSync("./ticketCount.json"));
 ticketNumber = data.count + 1;
 }
 
-fs.writeFileSync("./ticketCount.json", JSON.stringify({ count: ticketNumber }));
+fs.writeFileSync("./ticketCount.json", JSON.stringify({count:ticketNumber}));
+
+/* create channel */
 
 const ticketChannel = await guild.channels.create({
 name:`ticket-${ticketNumber}`,
 type:ChannelType.GuildText,
 parent: CONFIG.ticketCategory || null,
-
 permissionOverwrites:[
 {
 id:guild.id,
@@ -111,6 +110,8 @@ PermissionsBitField.Flags.SendMessages
 ]
 });
 
+/* close button */
+
 const closeButton = new ButtonBuilder()
 .setCustomId("close_ticket")
 .setLabel("Close Ticket")
@@ -118,35 +119,33 @@ const closeButton = new ButtonBuilder()
 
 const row = new ActionRowBuilder().addComponents(closeButton);
 
+/* send ticket message */
+
 await ticketChannel.send({
 content:`${interaction.user} <@&${CONFIG.supportRole}>`,
 components:[row]
 });
 
+/* reply */
+
 await interaction.editReply({
 content:`✅ Ticket created: ${ticketChannel}`
 });
 
+/* log */
+
 if(logChannel){
 logChannel.send({
-embeds:[{
-title:"📩 Ticket Created",
-color:0x22c55e,
-fields:[
-{ name:"User", value:`${interaction.user}`, inline:true },
-{ name:"Channel", value:`${ticketChannel}`, inline:true }
-],
-timestamp:new Date()
-}]
+content:`📩 Ticket created by ${interaction.user} → ${ticketChannel}`
 });
 }
 
 }catch(err){
 
-console.error("Ticket error:", err);
+console.error("Ticket creation error:",err);
 
 interaction.editReply({
-content:"❌ Failed to create ticket. Check settings."
+content:"❌ Ticket creation failed."
 }).catch(()=>{});
 
 }
