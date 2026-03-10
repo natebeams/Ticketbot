@@ -3,7 +3,6 @@ const session = require("express-session");
 const passport = require("passport");
 const DiscordStrategy = require("passport-discord").Strategy;
 const path = require("path");
-const fs = require("fs");
 const { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle } = require("discord.js");
 
 module.exports = (client) => {
@@ -17,12 +16,18 @@ app.set("view engine","ejs");
 app.set("views", path.join(__dirname,"views"));
 
 /* ===================== */
+/* SESSION */
+/* ===================== */
 
 app.use(session({
 secret: process.env.SESSION_SECRET || "dashboard-secret",
 resave:false,
 saveUninitialized:false
 }));
+
+/* ===================== */
+/* PASSPORT */
+/* ===================== */
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -40,6 +45,8 @@ scope:["identify","guilds"]
 return done(null,profile);
 }));
 
+/* ===================== */
+/* ROUTES */
 /* ===================== */
 
 app.get("/",(req,res)=>{
@@ -64,6 +71,8 @@ res.render("dashboard",{stats});
 });
 
 /* ===================== */
+/* PAGES */
+/* ===================== */
 
 app.get("/panels",(req,res)=>res.render("panels"));
 app.get("/tickets",(req,res)=>res.render("tickets"));
@@ -80,12 +89,14 @@ try{
 const guild = client.guilds.cache.first();
 if(!guild) return res.send("Guild not found");
 
-const {
-title,
-description,
-button,
-channelId
-} = req.body;
+/* get data from form */
+
+const title = req.body.title;
+const description = req.body.description;
+const button = req.body.button;
+const channelId = req.body.channelID;
+
+/* find channel */
 
 const channel = guild.channels.cache.get(channelId);
 
@@ -93,30 +104,30 @@ if(!channel){
 return res.send("Channel not found. Check the ID.");
 }
 
-/* EMBED */
+/* embed */
 
 const embed = new EmbedBuilder()
-.setTitle(title || "Support/Report Ticket")
+.setTitle(title || "Support Ticket")
 .setDescription(description || "Click the button below to open a ticket.")
 .setColor(0x5865F2);
 
-/* BUTTON */
+/* button */
 
 const ticketButton = new ButtonBuilder()
-.setCustomId("open_ticket")
+.setCustomId("create_ticket")   // FIXED
 .setLabel(button || "Create Ticket")
 .setStyle(ButtonStyle.Primary);
 
 const row = new ActionRowBuilder().addComponents(ticketButton);
 
-/* SEND PANEL */
+/* send panel */
 
 await channel.send({
 embeds:[embed],
 components:[row]
 });
 
-/* redirect back to panels page */
+/* redirect */
 
 res.redirect("/panels");
 
@@ -130,6 +141,8 @@ res.send("Panel creation failed. Check console.");
 });
 
 /* ===================== */
+/* LOGIN */
+/* ===================== */
 
 app.get("/login",passport.authenticate("discord"));
 
@@ -138,6 +151,8 @@ passport.authenticate("discord",{failureRedirect:"/"}),
 (req,res)=>res.redirect("/dashboard")
 );
 
+/* ===================== */
+/* SERVER */
 /* ===================== */
 
 const PORT = process.env.PORT || 3000;
