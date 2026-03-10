@@ -46,6 +46,10 @@ app.get("/",(req,res)=>{
 res.send("Dashboard online");
 });
 
+app.get("/health",(req,res)=>{
+res.status(200).send("OK");
+});
+
 app.get("/dashboard",(req,res)=>{
 
 const stats={
