@@ -10,39 +10,19 @@ module.exports = (client) => {
 
 const app = express();
 
-/* SETTINGS FILE */
-
-const settingsPath = path.join(__dirname, "settings.json");
-
-let dashboardSettings = {};
-
-if (fs.existsSync(settingsPath)) {
-dashboardSettings = JSON.parse(fs.readFileSync(settingsPath));
-}
-
-/* ================================ */
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
+app.set("view engine","ejs");
+app.set("views", path.join(__dirname,"views"));
 
-/* HEALTHCHECK */
-
-app.get("/health",(req,res)=>{
-res.status(200).send("OK");
-});
-
-/* SESSIONS */
+/* ===================== */
 
 app.use(session({
 secret: process.env.SESSION_SECRET || "dashboard-secret",
 resave:false,
 saveUninitialized:false
 }));
-
-/* PASSPORT */
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -60,7 +40,7 @@ scope:["identify","guilds"]
 return done(null,profile);
 }));
 
-/* ROUTES */
+/* ===================== */
 
 app.get("/",(req,res)=>{
 res.send("Dashboard online");
@@ -72,8 +52,6 @@ const stats={
 status: client?.ws?.status === 0 ? "Online":"Offline",
 latency: client?.ws?.ping || 0,
 uptime: Math.floor(process.uptime()),
-openTickets:0,
-totalTickets:0,
 serverName: client?.guilds?.cache?.first()?.name || "Unknown"
 };
 
@@ -81,118 +59,73 @@ res.render("dashboard",{stats});
 
 });
 
-/* SIDEBAR */
+/* ===================== */
 
 app.get("/panels",(req,res)=>res.render("panels"));
 app.get("/tickets",(req,res)=>res.render("tickets"));
 app.get("/settings",(req,res)=>res.render("settings"));
 
-/* GET SERVER DATA */
-
-app.get("/guild-data",(req,res)=>{
-
-const guild = client.guilds.cache.first();
-
-if(!guild){
-return res.json({roles:[],channels:[],categories:[]});
-}
-
-const roles = guild.roles.cache
-.filter(r=>r.name!=="@everyone")
-.map(r=>({id:r.id,name:r.name}));
-
-const channels = guild.channels.cache
-.filter(c=>c.type===0)
-.map(c=>({id:c.id,name:c.name}));
-
-const categories = guild.channels.cache
-.filter(c=>c.type===4)
-.map(c=>({id:c.id,name:c.name}));
-
-res.json({roles,channels,categories});
-
-});
-
-/* SAVE SETTINGS */
-
-app.post("/save-settings",(req,res)=>{
-
-dashboardSettings=req.body;
-
-fs.writeFileSync(settingsPath,JSON.stringify(dashboardSettings,null,2));
-
-res.json({success:true});
-
-});
-
-/* LOAD SETTINGS */
-
-app.get("/load-settings",(req,res)=>{
-res.json(dashboardSettings);
-});
-
+/* ===================== */
 /* CREATE PANEL */
+/* ===================== */
 
 app.post("/create-panel", async (req,res)=>{
 
 try{
 
 const guild = client.guilds.cache.first();
+if(!guild) return res.send("Guild not found");
 
-if(!guild){
-return res.json({success:false,error:"Guild not found"});
-}
-
-/* values from dashboard form */
-
-const title = req.body.title || "Support Ticket";
-const description = req.body.description || "Click the button below to open a ticket.";
-const buttonText = req.body.button || "Create Ticket";
-const channelId = req.body.channelId;
-
-/* find channel */
+const {
+title,
+description,
+button,
+channelId
+} = req.body;
 
 const channel = guild.channels.cache.get(channelId);
 
 if(!channel){
-return res.json({success:false,error:"Channel not found"});
+return res.send("Channel not found. Check the ID.");
 }
 
-/* create embed */
+/* EMBED */
 
 const embed = new EmbedBuilder()
-.setTitle(title)
-.setDescription(description)
+.setTitle(title || "Support Panel")
+.setDescription(description || "Click the button below to open a ticket.")
 .setColor(0x5865F2);
 
-/* create button */
+/* BUTTON */
 
 const ticketButton = new ButtonBuilder()
 .setCustomId("open_ticket")
-.setLabel(buttonText)
+.setLabel(button || "Create Ticket")
 .setStyle(ButtonStyle.Primary);
 
 const row = new ActionRowBuilder().addComponents(ticketButton);
 
-/* send panel */
+/* SEND PANEL */
 
 await channel.send({
 embeds:[embed],
 components:[row]
 });
 
-res.json({success:true});
+/* redirect back to panels page */
+
+res.redirect("/panels");
 
 }catch(err){
 
 console.error(err);
-res.json({success:false,error:"Panel creation failed"});
+res.send("Panel creation failed. Check console.");
 
 }
 
 });
 
-/* LOGIN */
+/* ===================== */
 
 app.get("/login",passport.authenticate("discord"));
 
@@ -201,9 +134,9 @@ passport.authenticate("discord",{failureRedirect:"/"}),
 (req,res)=>res.redirect("/dashboard")
 );
 
-/* SERVER */
+/* ===================== */
 
-const PORT=process.env.PORT||3000;
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT,"0.0.0.0",()=>{
 console.log(`Dashboard running on port ${PORT}`);
