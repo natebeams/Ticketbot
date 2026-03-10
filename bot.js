@@ -52,9 +52,7 @@ READY EVENT
 ================================ */
 
 client.once("ready", () => {
-
 console.log(`Logged in as ${client.user.tag}`);
-
 });
 
 /* ================================
@@ -71,9 +69,11 @@ const logChannel = interaction.guild.channels.cache.get(CONFIG.logsChannel);
 OPEN TICKET
 ================================ */
 
-if(interaction.customId === "create_ticket"){  // FIXED BUTTON ID
+if(interaction.customId === "create_ticket"){
 
 try{
+
+await interaction.deferReply({ ephemeral:true });
 
 const guild = interaction.guild;
 let ticketNumber = 1;
@@ -124,13 +124,11 @@ content:`${interaction.user} <@&${CONFIG.supportRole}>`,
 components:[row]
 });
 
-await interaction.reply({
-content:`✅ Ticket created: ${ticketChannel}`,
-ephemeral:true
+await interaction.editReply({
+content:`✅ Ticket created: ${ticketChannel}`
 });
 
 if(logChannel){
-
 logChannel.send({
 embeds:[{
 title:"📩 Ticket Created",
@@ -142,16 +140,14 @@ fields:[
 timestamp:new Date()
 }]
 });
-
 }
 
 }catch(err){
 
 console.error("Ticket error:", err);
 
-interaction.reply({
-content:"❌ Failed to create ticket. Check settings.",
-ephemeral:true
+interaction.editReply({
+content:"❌ Failed to create ticket. Check settings."
 }).catch(()=>{});
 
 }
@@ -172,12 +168,10 @@ filename:`${interaction.channel.name}.html`
 });
 
 if(logChannel){
-
 await logChannel.send({
 content:`🔒 Ticket closed by ${interaction.user}`,
 files:[transcript]
 });
-
 }
 
 await interaction.reply({
@@ -190,9 +184,7 @@ interaction.channel.delete().catch(()=>{});
 },3000);
 
 }catch(err){
-
 console.error("Close ticket error:",err);
-
 }
 
 }
