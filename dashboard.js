@@ -77,7 +77,50 @@ res.render("dashboard",{stats});
 app.get("/panels",(req,res)=>res.render("panels"));
 app.get("/tickets",(req,res)=>res.render("tickets"));
 app.get("/settings",(req,res)=>res.render("settings"));
+/* ===================== */
+/* GET SERVER DATA */
+/* ===================== */
 
+app.get("/guild-data",(req,res)=>{
+
+const guild = client.guilds.cache.first();
+
+if(!guild){
+return res.json({
+roles:[],
+channels:[],
+categories:[]
+});
+}
+
+const roles = guild.roles.cache
+.filter(r => r.name !== "@everyone")
+.map(r => ({
+id: r.id,
+name: r.name
+}));
+
+const channels = guild.channels.cache
+.filter(c => c.type === 0)
+.map(c => ({
+id: c.id,
+name: c.name
+}));
+
+const categories = guild.channels.cache
+.filter(c => c.type === 4)
+.map(c => ({
+id: c.id,
+name: c.name
+}));
+
+res.json({
+roles,
+channels,
+categories
+});
+
+});
 /* ===================== */
 /* CREATE PANEL */
 /* ===================== */
