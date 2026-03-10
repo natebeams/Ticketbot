@@ -66,7 +66,18 @@ app.get("/test", (req, res) => {
 });
 
 app.get("/dashboard", (req, res) => {
-  res.render("dashboard");
+
+const stats = {
+status: client?.ws?.status === 0 ? "Online" : "Offline",
+latency: client?.ws?.ping || 0,
+uptime: Math.floor(process.uptime()),
+openTickets: 0,
+totalTickets: 0,
+serverName: client?.guilds?.cache?.first()?.name || "Unknown"
+};
+
+res.render("dashboard", { stats });
+
 });
 
 app.get("/login", passport.authenticate("discord"));
