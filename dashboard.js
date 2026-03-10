@@ -3,12 +3,17 @@ const session = require("express-session");
 const passport = require("passport");
 const DiscordStrategy = require("passport-discord").Strategy;
 const path = require("path");
-const fs = require("fs");
 const { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle } = require("discord.js");
 
 module.exports = (client) => {
 
 const app = express();
+
+/* ================================
+MEMORY STORAGE FOR SETTINGS
+================================ */
+
+let dashboardSettings = {};
 
 /* ================================
 MIDDLEWARE
@@ -140,12 +145,7 @@ SAVE SETTINGS
 
 app.post("/save-settings",(req,res)=>{
 
-const settings = req.body;
-
-fs.writeFileSync(
-"./settings.json",
-JSON.stringify(settings,null,2)
-);
+dashboardSettings = req.body;
 
 res.json({success:true});
 
@@ -157,15 +157,7 @@ LOAD SETTINGS
 
 app.get("/load-settings",(req,res)=>{
 
-if(!fs.existsSync("./settings.json")){
-return res.json({});
-}
-
-const settings = JSON.parse(
-fs.readFileSync("./settings.json")
-);
-
-res.json(settings);
+res.json(dashboardSettings);
 
 });
 
@@ -177,21 +169,13 @@ app.post("/create-panel", async (req,res)=>{
 
 try{
 
-if(!fs.existsSync("./settings.json")){
-return res.json({success:false,error:"Settings not configured"});
-}
-
-const settings = JSON.parse(
-fs.readFileSync("./settings.json")
-);
-
 const guild = client.guilds.cache.first();
 
 if(!guild){
 return res.json({success:false,error:"Guild not found"});
 }
 
-const channel = guild.channels.cache.get(settings.logsChannel);
+const channel = guild.channels.cache.get(dashboardSettings.logsChannel);
 
 if(!channel){
 return res.json({success:false,error:"Channel not found"});
