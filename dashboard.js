@@ -65,27 +65,45 @@ app.get("/test", (req, res) => {
   res.send("dashboard working");
 });
 
+/* Dashboard page */
+
 app.get("/dashboard", (req, res) => {
 
 const stats = {
-status: client?.ws?.status === 0 ? "Online" : "Offline",
-latency: client?.ws?.ping || 0,
-uptime: Math.floor(process.uptime()),
-openTickets: 0,
-totalTickets: 0,
-serverName: client?.guilds?.cache?.first()?.name || "Unknown"
+  status: client?.ws?.status === 0 ? "Online" : "Offline",
+  latency: client?.ws?.ping || 0,
+  uptime: Math.floor(process.uptime()),
+  openTickets: 0,
+  totalTickets: 0,
+  serverName: client?.guilds?.cache?.first()?.name || "Unknown"
 };
 
 res.render("dashboard", { stats });
 
 });
 
+/* NEW ROUTES FOR SIDEBAR */
+
+app.get("/panels", (req, res) => {
+  res.render("panels");
+});
+
+app.get("/tickets", (req, res) => {
+  res.render("tickets");
+});
+
+app.get("/settings", (req, res) => {
+  res.render("settings");
+});
+
+/* DISCORD LOGIN */
+
 app.get("/login", passport.authenticate("discord"));
 
 app.get("/auth/discord/callback",
   passport.authenticate("discord", { failureRedirect: "/" }),
   (req, res) => {
-    res.send("Logged in with Discord!");
+    res.redirect("/dashboard");
   }
 );
 
