@@ -7,67 +7,62 @@
 <style>
 
 body{
-    background:#0f172a;
-    font-family:Arial;
-    color:white;
+background:#0f172a;
+font-family:Arial;
+color:white;
 }
 
 .container{
-    width:600px;
-    margin:auto;
-    margin-top:50px;
+width:600px;
+margin:auto;
+margin-top:50px;
 }
 
 h1{
-    text-align:center;
+text-align:center;
 }
 
 .box{
-    background:#1e293b;
-    padding:25px;
-    border-radius:10px;
+background:#1e293b;
+padding:25px;
+border-radius:10px;
 }
 
 input, textarea{
-
-    width:100%;
-    padding:12px;
-    margin-top:10px;
-    margin-bottom:15px;
-
-    background:#0f172a;
-    border:1px solid #334155;
-    color:white;
-    border-radius:6px;
+width:100%;
+padding:12px;
+margin-top:10px;
+margin-bottom:15px;
+background:#0f172a;
+border:1px solid #334155;
+color:white;
+border-radius:6px;
 }
 
 button{
-
-    width:100%;
-    padding:12px;
-
-    background:#2563eb;
-    border:none;
-    border-radius:6px;
-
-    color:white;
-    font-size:16px;
-    cursor:pointer;
+width:100%;
+padding:12px;
+background:#2563eb;
+border:none;
+border-radius:6px;
+color:white;
+font-size:16px;
+cursor:pointer;
 }
 
 button:hover{
-    background:#1d4ed8;
+background:#1d4ed8;
 }
 
 .nav{
-    text-align:center;
-    margin-bottom:25px;
+text-align:center;
+margin-bottom:25px;
 }
 
 .nav a{
-    color:#60a5fa;
-    margin:10px;
-    text-decoration:none;
+color:#60a5fa;
+margin:10px;
+text-decoration:none;
 }
 
 </style>
@@ -89,30 +84,52 @@ button:hover{
 
 <div class="box">
 
-<form action="/create-panel" method="POST">
-
 <label>Panel Title</label>
-<input name="title" placeholder="Support Panel">
+<input id="panelTitle" placeholder="Support Panel">
 
 <label>Description</label>
-<textarea name="description" placeholder="Click the button below to open a ticket"></textarea>
+<textarea id="panelDescription" placeholder="Click the button below to open a ticket"></textarea>
 
-<label>Button Label</label>
-<input name="button" placeholder="Open Ticket">
+<label>Channel ID (where panel will be sent)</label>
+<input id="panelChannel" placeholder="1234567890123">
 
-<label>Ticket Channel ID</label>
-<input name="channelId" placeholder="1234567890123">
-
-<label>Staff Role ID</label>
-<input name="staffRole" placeholder="9876543210987">
-
-<button type="submit">Create Panel</button>
-
-</form>
+<button onclick="createPanel()">Create Panel</button>
 
 </div>
 
 </div>
+
+<script>
+
+async function createPanel(){
+
+const channelID = document.getElementById("panelChannel").value
+const title = document.getElementById("panelTitle").value
+const description = document.getElementById("panelDescription").value
+
+const res = await fetch("/create-panel",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+channelID: channelID,
+title: title,
+description: description
+})
+})
+
+const data = await res.json()
+
+if(data.success){
+alert("Panel created successfully!")
+}else{
+alert(data.error)
+}
+
+}
+
+</script>
 
 </body>
 </html>
