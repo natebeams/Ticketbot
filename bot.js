@@ -48,15 +48,10 @@ GatewayIntentBits.GuildMembers
 });
 
 /* ================================
-START DASHBOARD
-================================ */
-
-
-/* ================================
 READY EVENT
 ================================ */
 
-client.once("clientReady", () => {
+client.once("ready", () => {
 
 console.log(`Logged in as ${client.user.tag}`);
 
@@ -76,7 +71,7 @@ const logChannel = interaction.guild.channels.cache.get(CONFIG.logsChannel);
 OPEN TICKET
 ================================ */
 
-if(interaction.customId === "open_ticket"){
+if(interaction.customId === "create_ticket"){  // FIXED BUTTON ID
 
 try{
 
