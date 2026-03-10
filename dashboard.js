@@ -3,10 +3,17 @@ const session = require("express-session");
 const passport = require("passport");
 const DiscordStrategy = require("passport-discord").Strategy;
 const path = require("path");
+const fs = require("fs");
 
 module.exports = (client) => {
 
 const app = express();
+
+/* ================================
+MIDDLEWARE
+================================ */
+
+app.use(express.json());
 
 /* ================================
 VIEWS
@@ -16,11 +23,11 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
 /* ================================
-HEALTHCHECK (RAILWAY)
+HEALTHCHECK
 ================================ */
 
 app.get("/health", (req, res) => {
-  res.status(200).send("OK");
+res.status(200).send("OK");
 });
 
 /* ================================
@@ -28,9 +35,9 @@ SESSIONS
 ================================ */
 
 app.use(session({
-  secret: process.env.SESSION_SECRET || "dashboard-secret",
-  resave: false,
-  saveUninitialized: false
+secret: process.env.SESSION_SECRET || "dashboard-secret",
+resave: false,
+saveUninitialized: false
 }));
 
 /* ================================
@@ -44,68 +51,134 @@ passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((obj, done) => done(null, obj));
 
 passport.use(new DiscordStrategy({
-  clientID: process.env.CLIENT_ID,
-  clientSecret: process.env.CLIENT_SECRET,
-  callbackURL: process.env.CALLBACK_URL,
-  scope: ["identify", "guilds"]
+clientID: process.env.CLIENT_ID,
+clientSecret: process.env.CLIENT_SECRET,
+callbackURL: process.env.CALLBACK_URL,
+scope: ["identify","guilds"]
 },
 (accessToken, refreshToken, profile, done) => {
-  return done(null, profile);
+return done(null, profile);
 }));
 
 /* ================================
 ROUTES
 ================================ */
 
-app.get("/", (req, res) => {
-  res.send("Dashboard online");
+app.get("/", (req,res)=>{
+res.send("Dashboard online");
 });
 
-app.get("/test", (req, res) => {
-  res.send("dashboard working");
-});
-
-/* Dashboard page */
-
-app.get("/dashboard", (req, res) => {
+app.get("/dashboard",(req,res)=>{
 
 const stats = {
-  status: client?.ws?.status === 0 ? "Online" : "Offline",
-  latency: client?.ws?.ping || 0,
-  uptime: Math.floor(process.uptime()),
-  openTickets: 0,
-  totalTickets: 0,
-  serverName: client?.guilds?.cache?.first()?.name || "Unknown"
+status: client?.ws?.status === 0 ? "Online" : "Offline",
+latency: client?.ws?.ping || 0,
+uptime: Math.floor(process.uptime()),
+openTickets: 0,
+totalTickets: 0,
+serverName: client?.guilds?.cache?.first()?.name || "Unknown"
 };
 
-res.render("dashboard", { stats });
+res.render("dashboard",{stats});
 
 });
 
-/* NEW ROUTES FOR SIDEBAR */
+/* Sidebar pages */
 
-app.get("/panels", (req, res) => {
-  res.render("panels");
+app.get("/panels",(req,res)=>{
+res.render("panels");
 });
 
-app.get("/tickets", (req, res) => {
-  res.render("tickets");
+app.get("/tickets",(req,res)=>{
+res.render("tickets");
 });
 
-app.get("/settings", (req, res) => {
-  res.render("settings");
+app.get("/settings",(req,res)=>{
+res.render("settings");
 });
 
-/* DISCORD LOGIN */
+/* ================================
+API: GET SERVER DATA
+================================ */
 
-app.get("/login", passport.authenticate("discord"));
+app.get("/guild-data",(req,res)=>{
+
+const guild = client.guilds.cache.first();
+
+if(!guild){
+return res.json({
+roles:[],
+channels:[],
+categories:[]
+});
+}
+
+const roles = guild.roles.cache
+.filter(r=>r.name !== "@everyone")
+.map(r=>({id:r.id,name:r.name}));
+
+const channels = guild.channels.cache
+.filter(c=>c.type === 0)
+.map(c=>({id:c.id,name:c.name}));
+
+const categories = guild.channels.cache
+.filter(c=>c.type === 4)
+.map(c=>({id:c.id,name:c.name}));
+
+res.json({
+roles,
+channels,
+categories
+});
+
+});
+
+/* ================================
+SAVE SETTINGS
+================================ */
+
+app.post("/save-settings",(req,res)=>{
+
+const settings = req.body;
+
+fs.writeFileSync(
+"./settings.json",
+JSON.stringify(settings,null,2)
+);
+
+res.json({success:true});
+
+});
+
+/* ================================
+LOAD SETTINGS
+================================ */
+
+app.get("/load-settings",(req,res)=>{
+
+if(!fs.existsSync("./settings.json")){
+return res.json({});
+}
+
+const settings = JSON.parse(
+fs.readFileSync("./settings.json")
+);
+
+res.json(settings);
+
+});
+
+/* ================================
+DISCORD LOGIN
+================================ */
+
+app.get("/login",passport.authenticate("discord"));
 
 app.get("/auth/discord/callback",
-  passport.authenticate("discord", { failureRedirect: "/" }),
-  (req, res) => {
-    res.redirect("/dashboard");
-  }
-);
+passport.authenticate("discord",{failureRedirect:"/"}),
+(req,res)=>{
+res.redirect("/dashboard");
+});
 
 /* ================================
 START SERVER
@@ -113,8 +186,8 @@ START SERVER
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Dashboard running on port ${PORT}`);
+app.listen(PORT,"0.0.0.0",()=>{
+console.log(`Dashboard running on port ${PORT}`);
 });
 
 };
