@@ -23,6 +23,7 @@ dashboardSettings = JSON.parse(fs.readFileSync(settingsPath));
 /* ================================ */
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -142,36 +143,38 @@ if(!guild){
 return res.json({success:false,error:"Guild not found"});
 }
 
-/* channel from dashboard input */
+/* values from dashboard form */
 
-const channelID = req.body.channelID;
+const title = req.body.title || "Support Ticket";
+const description = req.body.description || "Click the button below to open a ticket.";
+const buttonText = req.body.button || "Create Ticket";
+const channelId = req.body.channelId;
 
-if(!channelID){
-return res.json({success:false,error:"Panel channel not provided"});
-}
+/* find channel */
 
-const channel = guild.channels.cache.get(channelID);
+const channel = guild.channels.cache.get(channelId);
 
 if(!channel){
 return res.json({success:false,error:"Channel not found"});
 }
 
-/* custom text */
-
-const title = req.body.title || "Support Ticket";
-const description = req.body.description || "Click the button below to open a ticket.";
+/* create embed */
 
 const embed = new EmbedBuilder()
 .setTitle(title)
 .setDescription(description)
 .setColor(0x5865F2);
 
-const button = new ButtonBuilder()
-.setCustomId("create_ticket")
-.setLabel("Create Ticket")
+/* create button */
+
+const ticketButton = new ButtonBuilder()
+.setCustomId("open_ticket")
+.setLabel(buttonText)
 .setStyle(ButtonStyle.Primary);
 
-const row = new ActionRowBuilder().addComponents(button);
+const row = new ActionRowBuilder().addComponents(ticketButton);
+
+/* send panel */
 
 await channel.send({
 embeds:[embed],
