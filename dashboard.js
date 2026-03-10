@@ -96,7 +96,7 @@ return res.send("Channel not found. Check the ID.");
 /* EMBED */
 
 const embed = new EmbedBuilder()
-.setTitle(title || "Support Panel")
+.setTitle(title || "Support/Report Ticket")
 .setDescription(description || "Click the button below to open a ticket.")
 .setColor(0x5865F2);
 
